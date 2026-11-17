@@ -38,7 +38,7 @@ https://github.com/user-attachments/assets/8c14e3bc-1be9-4e27-a781-f8393eb2be03
 
 El programa tiene 3 modos: ARRANQUE, SERVICIO o ADMIN, para servicio también hay fases: ESPERANDO_CLIENTE, MOSTRANDO_DATOS, SELECCIONAR_PRODUCTO, PREPARANDO o RETIRAR_BEBIDA, y dos listas de precios por si se actualizan.
 
-El loop tiene solo dos líneas ya que contamos con hilos y un controlador. También, muy importante el reseteo del watchdog.
+El loop tiene solo dos líneas ya que contamos con hilos, interrupciones, el setup y un controlador. También, muy importante el reseteo del watchdog.
 
 Cada hilo se encarga de una tarea:
 - led_thread -> blink_led(), cuando el modo sea arranque se ejecutará cada segundo.
@@ -57,6 +57,30 @@ El watchdog es un temporizador del microcontrolador que reinicia la placa si el 
 En el setup directamente se escribe en la LCD y el hilo llama a su función cada segundo donde se cambiará su estado de true a false, que es lo mismo que high a low. Cada vez que el estado sea true/high se aumentará un contador el cual cuando se llegue a 3 cambiará el modo a servicio y se transicionará. 
 
 *Servicio*
+
+Primero entra la fase esperando cliente con su función check_presence (), donde hasta que no llega una medida menos a 1m, no se pasa a la siguiente fase mostando_datos.
+
+En esta, la función show_tem_humd () es llamada hasta que se cumple el plazo de tiempo gracias a un condicional y millis en dos instantante de tiempos. Cuando se cumple, se pasa a la fase seleccionar_producto.
+
+Ahora con show_products() podemos interactuar con el menú y sabremos si el joystick ha sido presionado cuando su función joystick_pressed () devuelva true, con esto se pasará a la fase preparando.
+
+Preparando tiene su función prepare_drink() donde en cada vuelta, se calcula el tiempo transcurrido. Mientras sea menor que prep_time, escribe en el LCD y actualiza el brillo del LED2 se pasa  la fase retirar_bebida.
+
+con take_drink(), funcion de la fase retirar_bebida escribimos en la LCD y se pasa de nuevo a la fase esperando_cliente.
+
+Check_button gestiona la pulsación del botón y dependiendo del modo en el que esté y el laduración de la pulsación entrará en cancelación o en modo admin (entrada o salida). La interrupción detect_button() se activa con CHANGE
+
+*Administración*
+
+Siempre estarán encendidos ambos leds. 
+
+Con show_options() mostaremos otro menú de opciones: temperatura y humedad, distancia, contador y editar precios, que llamarán asus respectivas funciones: show_admin_temperature(), show_distance(), show_counter() y edit_prices().
+
+En edit_prices(), si pulsamos un café, nos permite cambiar en 0,05 el precio de este subiendo o bajando el joystck. Volviendo a pulsar confirmas el precio y vuelves a menu de cafés. 
+
+La función back_to_menu nos permite ir hacia atras, es decir, si estamos en contador y queremos volver al menú de admin, moviendo el joystick hacia la izquierda se ejcutará la función.
+
+
 
 
   
