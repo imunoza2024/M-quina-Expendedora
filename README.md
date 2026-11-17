@@ -12,7 +12,7 @@ Para los pines elegidos, no todas las decisiones son arbitrarias.
 - El led rojo está en el pin 11 porque necesitámos uno PWM para ir incrementando la luz.
 - Para el Joystick necesitamos pines analógicos.
 
-**Funcionamineto**
+**Resumen del funcionamineto**
 
 Al arrancar la placa, se enciende 3 veces un led azul esperando 1 segundo entre una y otra. A la vez, en la LDC se puede leer CARGANDO..., durante el mismo tiempo.
 
@@ -49,4 +49,14 @@ Cada hilo se encarga de una tarea:
 Para las interrupciones utilizo attachInterupt para las del botón y TimerOne para el contador. Es necesario declarar sus variables como volatil para poder comprobar sus valores en ese instante de tiempo
 
 El watchdog es un temporizador del microcontrolador que reinicia la placa si el programa no lo resetea a tiempo, se define en el setup y s ereinicia en el loop.
+
+> Código al detalle
+
+*Arranque*
+
+En el setup directamente se escribe en la LCD y el hilo llama a su función cada segundo donde se cambiará su estado de true a false, que es lo mismo que high a low. Cada vez que el estado sea true/high se aumentará un contador el cual cuando se llegue a 3 cambiará el modo a servicio y se transicionará. 
+
+*Servicio*
+
+
   
