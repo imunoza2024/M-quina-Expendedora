@@ -1,6 +1,6 @@
 # Máquina-Expendedora
 
-En esta práctica el objetivo es implementar el funcionamiento de una máquina expendedora utilizando componentes de Arduino como joystick, LCD, etc
+En esta práctica el objetivo es implementar el funcionamiento de una máquina expendedora utilizando componentes de Arduino como joystick, LCD, etc.
 
 **Montaje**
 
@@ -48,7 +48,9 @@ Cada hilo se encarga de una tarea:
 
 Para las interrupciones utilizo attachInterupt para las del botón y TimerOne para el contador. Es necesario declarar sus variables como volatil para poder comprobar sus valores en ese instante de tiempo
 
-El watchdog es un temporizador del microcontrolador que reinicia la placa si el programa no lo resetea a tiempo, se define en el setup y s ereinicia en el loop.
+El watchdog es un temporizador del microcontrolador que reinicia la placa si el programa no lo resetea a tiempo, se define en el setup y se reinicia en el loop.
+
+
 
 > Código al detalle
 
@@ -66,9 +68,9 @@ Ahora con show_products() podemos interactuar con el menú y sabremos si el joys
 
 Preparando tiene su función prepare_drink() donde en cada vuelta, se calcula el tiempo transcurrido. Mientras sea menor que prep_time, escribe en el LCD y actualiza el brillo del LED2 se pasa  la fase retirar_bebida.
 
-con take_drink(), funcion de la fase retirar_bebida escribimos en la LCD y se pasa de nuevo a la fase esperando_cliente.
+Con take_drink(), funcion de la fase retirar_bebida, escribimos en la LCD y se pasa de nuevo a la fase esperando_cliente.
 
-Check_button gestiona la pulsación del botón y dependiendo del modo en el que esté y el laduración de la pulsación entrará en cancelación o en modo admin (entrada o salida). La interrupción detect_button() se activa con CHANGE
+Check_button gestiona la pulsación del botón, y dependiendo del modo en el que esté y el la duración de esta, entrará en cancelación o en modo admin (entrada o salida). La interrupción detect_button() se activa con CHANGE.
 
 *Administración*
 
@@ -76,11 +78,25 @@ Siempre estarán encendidos ambos leds.
 
 Con show_options() mostaremos otro menú de opciones: temperatura y humedad, distancia, contador y editar precios, que llamarán asus respectivas funciones: show_admin_temperature(), show_distance(), show_counter() y edit_prices().
 
-En edit_prices(), si pulsamos un café, nos permite cambiar en 0,05 el precio de este subiendo o bajando el joystck. Volviendo a pulsar confirmas el precio y vuelves a menu de cafés. 
+En edit_prices(), si pulsamos un café, nos permite cambiar en 0,05 el precio de este subiendo o bajando el joystick. Volviendo a pulsar confirmas el precio y vuelves al menú de cafés. 
 
-La función back_to_menu nos permite ir hacia atras, es decir, si estamos en contador y queremos volver al menú de admin, moviendo el joystick hacia la izquierda se ejcutará la función.
+La función back_to_menu nos permite ir hacia atras, es decir, si estamos en contador y queremos volver al menú de admin, moviendo el joystick hacia la izquierda, se ejcutará la función.
 
+*¿Qué he usado y por qué?*
 
+Threads y controller: no queremos usar espera activa, por ejemplo, para los leds, el botón o el contador. Esta librería nos permite ejecutar tareas con distintos periodos sin necesidad de hacer delay().
 
+En mi caso, aademás de esta funcionalidad, lo uso para organizar el código entre tareas del servicio y del administrador, por ejemplo. Estas no están en funcionamiento continuamente, sino que, al iniciar debe pasar por una condición if (mode != servicio o admin) return;. Solo entra el hilo del modo en el que esté.
+
+Interrupciones: 
+
+- Para el botón, cuando se presiones o suelte. Aplico antirrebotes para evitar problemas con el botón. Además, noInterrupts()/interrupts() para evitar lecturas a medias.
+
+- Para el contador, con TimerOne que ejecuta cada segundo e incrementa el contador. Debe ser independiente a lo que esté haciendo el programa ya que queremos calculos exactos del tiempo.
+
+Watchdog: si por un fallo el programa se queda bloqueado más de 2s , wdt_reset() deja de ejecutarse y se reiniciará automáticamente.
+
+<img width="2000" height="900" alt="Foto1" src="https://github.com/user-attachments/assets/d9040f49-25d3-4264-a7c4-a9947d749b5e" />
 
   
+<img width="2000" height="900" alt="Foto2" src="https://github.com/user-attachments/assets/9e1b0043-c33f-478c-b6bb-5d7e4df5e8aa" />
